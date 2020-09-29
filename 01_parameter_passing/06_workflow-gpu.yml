@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: ai-vm-workflow-gpu-
+spec:
+  entrypoint: whalesay
+  templates:
+  - name: whalesay
+    steps:
+      - - name: call-ai-vm-workflow-template
+          templateRef:
+            name: ai-vm-workflow-template-gpu
+            template: whalesay-template
+          arguments:
+            parameters:
+            - name: container-image
+              value: "nvidia/cuda:10.0-runtime-ubuntu18.04"
+            - name: command
+              value: "echo"
+            - name: message
+              value: "testing gpu"
+            - name: resources-requests-cpu
+              value: "0.5"
+            - name: resources-requests-memory
+              value: "128Mi"
+            - name: resources-limits-cpu
+              value: "0.8"
+            - name: resources-limits-memory
+              value: "256Mi"
+            - name: resources-limits-gpu
+              value: "1"

@@ -1,0 +1,49 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ai-vm-workflow-template-gpu
+spec:
+  entrypoint: whalesay-template
+  templates:
+    - name: whalesay-template
+      inputs:
+        parameters:
+          - name: container-image
+            value: "docker/whalesay"
+          - name: command
+            value: "cowsay"
+          - name: message
+            value: "hello world"
+          - name: resources-requests-cpu
+            default: "0.1"
+          - name: resources-requests-memory
+            default: "64Mi"
+          - name: resources-limits-cpu
+            default: "0.9"
+          - name: resources-limits-memory
+            default: "512Mi"
+          - name: resources-limits-gpu
+            default: "2"
+      podSpecPatch: |
+        containers:
+          - name: main
+            resources:
+              requests:
+                cpu: "{{inputs.parameters.resources-requests-cpu}}"
+                memory: "{{inputs.parameters.resources-requests-memory}}"
+              limits:
+                cpu: "{{inputs.parameters.resources-limits-cpu}}"
+                memory: "{{inputs.parameters.resources-limits-memory}}"
+                nvidia.com/gpu: "{{inputs.parameters.resources-limits-gpu}}"
+      container:
+        image: "{{inputs.parameters.container-image}}"
+        command: ["{{inputs.parameters.command}}"]
+        args: ["{{inputs.parameters.message}}"]
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-tesla-v100 # or nvidia-tesla-p100 or nvidia-tesla-p4 or nvidia-tesla-v100 or nvidia-tesla-t4
+      tolerations:
+        - key: "nvidia.com/gpu"
+          operator: "Equal"
+          value: "present"
+          effect: "NoSchedule"
+      

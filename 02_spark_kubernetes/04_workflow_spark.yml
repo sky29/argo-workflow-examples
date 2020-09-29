@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: spark-workflow-from-template
+  namespace: default
+spec:
+  arguments: {}
+  serviceAccountName: spark
+  entrypoint: spark-task-template
+  templates:
+  - arguments: {}
+    name: spark-task-template
+    steps:                              
+      - - name: call-spark-task-template
+          templateRef:                 
+            name: spark-workflow-template
+            template: spark-task-template

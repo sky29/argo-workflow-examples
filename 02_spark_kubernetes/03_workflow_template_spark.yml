@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: spark-workflow-template
+  namespace: default
+spec:
+  entrypoint: spark-task-template
+  templates:
+    - name: spark-task-template
+      container:
+        image: <spark-image-name>
+        command: [/bin/bash]
+        args: 
+        - /opt/spark/bin/spark-submit
+        - --master
+        - k8s://https://<k8s-master-ip>:443
+        - --deploy-mode
+        - client
+        - --name
+        - spark-pi
+        - --class
+        - org.apache.spark.examples.SparkPi
+        - --conf
+        - spark.jars.ivy=/tmp/.ivy
+        - --conf
+        - spark.kubernetes.kerberos.krb5.path=/etc/krb5.conf
+        - --conf
+        - spark.driver.bindAddress=0.0.0.0
+        - --conf
+        - spark.driver.host=$HOST_IP
+        - --conf
+        - spark.driver.port=$SPARK_DRIVER_PORT
+        - --conf
+        - spark.driver.blockManager.port=$SPARK_DRIVER_PORT
+        - --conf
+        - spark.port.maxRetries=$SPARK_PORT_MAX_RETRIES
+        - --conf
+        - spark.executor.instances=1
+        - --executor-memory
+        - 1024m
+        - --conf
+        - spark.kubernetes.namespace=default
+        - --conf
+        - spark.kubernetes.container.image=<image_name>
+        - local:///opt/spark/examples/jars/spark-examples_2.12-3.0.1.jar 10

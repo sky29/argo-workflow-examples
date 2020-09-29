@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: ai-vm-workflow-template
+spec:
+  entrypoint: whalesay-template
+  templates:
+    - name: whalesay-template
+      inputs:
+        parameters:
+          - name: container-image
+            value: "docker/whalesay"
+          - name: command
+            value: "cowsay"
+          - name: message
+            value: "hello world"
+          - name: resources-requests-cpu
+            default: "0.1"
+          - name: resources-requests-memory
+            default: "64Mi"
+          - name: resources-limits-cpu
+            default: "0.9"
+          - name: resources-limits-memory
+            default: "512Mi"
+      podSpecPatch: |
+        containers:
+          - name: main
+            resources:
+              requests:
+                cpu: "{{inputs.parameters.resources-requests-cpu}}"
+                memory: "{{inputs.parameters.resources-requests-memory}}"
+              limits:
+                cpu: "{{inputs.parameters.resources-limits-cpu}}"
+                memory: "{{inputs.parameters.resources-limits-memory}}"
+      container:
+        image: "{{inputs.parameters.container-image}}"
+        command: ["{{inputs.parameters.command}}"]
+        args: ["{{inputs.parameters.message}}"]
